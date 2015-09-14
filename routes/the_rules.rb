@@ -7,6 +7,10 @@ class CiberSykkel < Sinatra::Application
     raise "You must specify the VELO_RULES_TOKEN env variable"
   end
 
+  unless rules_token = ENV['VELO_RULES_OUTGOING_TOKEN']
+    raise "You must specify the VELO_RULES_OUTGOING_TOKEN env variable"
+  end
+
   unless VELO_RULES_WEBHOOK = URI.parse(ENV['VELO_RULES_WEBHOOK'])
     raise "You must specify the VELO_RULES_WEBHOOK env variable"
   end
@@ -28,7 +32,27 @@ class CiberSykkel < Sinatra::Application
     end
     
     logger.info "Posting rule ##{rule_id}"
+    post_rule(rule_id, user)
+  end
 
+  post '/the-rules-webhook' do
+    unless params[:token] == ENV['VELO_RULES_OUTGOING_TOKEN']
+      logger.err "Wrong token used, #{params[:token]}"
+      return 'You need to specify correct token'
+    end
+
+    user = params.fetch('user_name')
+    text = params.fetch('text').strip
+
+    if text =~ /#\d\d?/
+      rule_id = text.match(/#\d\d?/)[0].delete('#')
+      post_rule(rule_id, user)
+    end
+
+    { "text": ""}.to_json
+  end
+
+  def post_rule(rule_id, user)
     rule = the_rules[rule_id]
 
     https = Net::HTTP.new(VELO_RULES_WEBHOOK.host, VELO_RULES_WEBHOOK.port)
