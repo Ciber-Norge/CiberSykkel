@@ -2,9 +2,15 @@ require 'net/http'
 require 'net/https'
 
 class CiberSykkel < Sinatra::Application
+
   unless rules_token = ENV['VELO_RULES_TOKEN']
     raise "You must specify the VELO_RULES_TOKEN env variable"
   end
+
+  unless VELO_RULES_WEBHOOK = URI.parse(ENV['VELO_RULES_WEBHOOK'])
+    raise "You must specify the VELO_RULES_WEBHOOK env variable"
+  end
+
   the_rules = JSON.parse(File.read('./assets/the-rules.json'))
 
   post '/the-rules' do
@@ -20,9 +26,9 @@ class CiberSykkel < Sinatra::Application
 
     rule = the_rules[rule_id]
 
-    https = Net::HTTP.new(SLACK_URL.host, SLACK_URL.port)
+    https = Net::HTTP.new(VELO_RULES_WEBHOOK.host, VELO_RULES_WEBHOOK.port)
     https.use_ssl = true
-    request = Net::HTTP::Post.new(SLACK_URL.path)
+    request = Net::HTTP::Post.new(VELO_RULES_WEBHOOK.path)
     request.body = {
       "channel": "#squash",
       "username": "SquashBot",
