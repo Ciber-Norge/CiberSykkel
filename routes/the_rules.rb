@@ -30,8 +30,6 @@ class CiberSykkel < Sinatra::Application
     https.use_ssl = true
     request = Net::HTTP::Post.new(VELO_RULES_WEBHOOK.path)
     request.body = {
-      "channel": "#squash",
-      "username": "SquashBot",
       "attachments": [
                       {
                         "fallback": rule["rule"],
