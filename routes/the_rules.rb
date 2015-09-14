@@ -6,14 +6,14 @@ class CiberSykkel < Sinatra::Application
 
   post '/the-rules' do
     unless params[:token] == ENV['VELO_RULES_TOKEN']
-      logging.err "Wrong token used, #{params[:token]}"
+      logger.err "Wrong token used, #{params[:token]}"
       return 'You need to specify correct token'
     end
     
     user = params.fetch('user_name')
     rule_id = params.fetch('text').strip
     
-    logging.info "Posting rule ##{rule_id}"
+    logger.info "Posting rule ##{rule_id}"
 
     the_rules[rule_id]
   end
