@@ -19,7 +19,7 @@ class CiberSykkel < Sinatra::Application
 
   post '/the-rules' do
     unless params[:token] == ENV['VELO_RULES_TOKEN']
-      logger.err "Wrong token used, #{params[:token]}"
+      logger.error "Wrong token used, #{params[:token]}"
       return 'You need to specify correct token'
     end
     
@@ -27,7 +27,7 @@ class CiberSykkel < Sinatra::Application
     rule_id = params.fetch('text').strip
 
     unless rule_id.to_i.between?(1,95)
-      logger.err "#{rule_id} is not a rule"
+      logger.error "#{rule_id} is not a rule"
       return "There is no such rule as ##{rule_id}"
     end
     
@@ -37,7 +37,7 @@ class CiberSykkel < Sinatra::Application
 
   post '/the-rules-webhook' do
     unless params[:token] == ENV['VELO_RULES_OUTGOING_TOKEN']
-      logger.err "Wrong token used, #{params[:token]}"
+      logger.error "Wrong token used, #{params[:token]}"
       return 'You need to specify correct token'
     end
 
