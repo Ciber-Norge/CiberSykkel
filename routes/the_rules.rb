@@ -21,6 +21,11 @@ class CiberSykkel < Sinatra::Application
     
     user = params.fetch('user_name')
     rule_id = params.fetch('text').strip
+
+    unless rule_id.to_i.between?(1,95)
+      logger.err "#{rule_id} is not a rule"
+      return "There is no such rule as ##{rule_id}"
+    end
     
     logger.info "Posting rule ##{rule_id}"
 
@@ -34,8 +39,8 @@ class CiberSykkel < Sinatra::Application
                       {
                         "fallback": rule["rule"],
                         "color": "good",
-                        "title": "Rule ##{rule_id}",
-                        "text": "#{rule["rule"]}\n#{rule["description"]}"
+                        "title": "Rule ##{rule_id} // #{rule["rule"]}",
+                        "text": "\n#{rule["description"]}\n\nRequested by #{user}"
                       }
                      ]}.to_json
     logger.info https.request(request)
