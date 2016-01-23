@@ -14,7 +14,7 @@ class CiberSykkel < Sinatra::Application
   before 'the-rules*' do
     content_type 'application/json'
 
-    unless [VELO_RULES_TOKEN].include?(params[:token])
+    unless VELO_RULES_TOKEN == params[:token]
       logger.error "Wrong token used, #{params[:token]}"
       halt 401, {'Content-Type' => 'text/plain'}, 'You need to specify correct token'
     end
