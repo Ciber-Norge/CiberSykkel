@@ -34,7 +34,7 @@ class CiberSykkel < Sinatra::Application
       return "There is no such rule as rule ##{rule_id}"
     end
 
-    rule_as_json(rule_id, user, 'in_channel')
+    json(rule_as_json(rule_id, user, 'in_channel'), :content_type => :js)
   end
 
   post '/the-rules-webhook' do
@@ -43,7 +43,7 @@ class CiberSykkel < Sinatra::Application
 
     if text =~ /(^|\s)#\d\d?($|\s)/
       rule_id = text.match(/#\d\d?/)[0].delete('#')
-      return rule_as_json(rule_id, user)
+      return json(rule_as_json(rule_id, user), :content_type => :js)
     end
 
     200
