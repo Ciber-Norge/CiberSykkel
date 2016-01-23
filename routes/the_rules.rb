@@ -11,7 +11,7 @@ class CiberSykkel < Sinatra::Application
 
   THE_RULES = JSON.parse(File.read('./assets/the-rules.json'))
 
-  before 'the-rules*' do
+  before '/the-rules*' do
     content_type 'application/json'
 
     unless VELO_RULES_TOKEN == params[:token]
