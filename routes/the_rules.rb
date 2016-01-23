@@ -43,7 +43,7 @@ class CiberSykkel < Sinatra::Application
     user = params.fetch('user_name')
     text = params.fetch('text').strip
 
-    if text =~ /#\d\d?/
+    if text =~ /\s#\d\d?\s/
       rule_id = text.match(/#\d\d?/)[0].delete('#')
       post_rule(rule_id, user)
     end
