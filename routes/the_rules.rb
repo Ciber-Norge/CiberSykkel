@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'net/http'
-require 'net/https'
-
-# Note to self
-# Use post_rule to post to slack-chat
-# return a value if only the user who asked wanted to see it
 class CiberSykkel < Sinatra::Application
 
   unless VELO_RULES_TOKEN = ENV['VELO_RULES_TOKEN']
@@ -18,6 +12,8 @@ class CiberSykkel < Sinatra::Application
   THE_RULES = JSON.parse(File.read('./assets/the-rules.json'))
 
   before 'the-rules*' do
+    content_type 'application/json'
+
     unless [VELO_RULES_TOKEN].include?(params[:token])
       logger.error "Wrong token used, #{params[:token]}"
       halt 401, {'Content-Type' => 'text/plain'}, 'You need to specify correct token'
@@ -34,7 +30,7 @@ class CiberSykkel < Sinatra::Application
       return "There is no such rule as rule ##{rule_id}"
     end
 
-    json(rule_as_json(rule_id, user, 'in_channel'), :content_type => :js)
+    rule_as_json(rule_id, user, 'in_channel')
   end
 
   post '/the-rules-webhook' do
@@ -43,7 +39,7 @@ class CiberSykkel < Sinatra::Application
 
     if text =~ /(^|\s)#\d\d?($|\s)/
       rule_id = text.match(/#\d\d?/)[0].delete('#')
-      return json(rule_as_json(rule_id, user), :content_type => :js)
+      return rule_as_json(rule_id, user)
     end
 
     200
