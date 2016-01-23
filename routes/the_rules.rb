@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
 require 'net/http'
 require 'net/https'
 
+# Note to self
+# Use post_rule to post to slack-chat
+# return a value if only the user who asked wanted to see it
 class CiberSykkel < Sinatra::Application
 
   unless VELO_RULES_TOKEN = ENV['VELO_RULES_TOKEN']
@@ -27,13 +31,14 @@ class CiberSykkel < Sinatra::Application
   post '/the-rules' do
     user = params.fetch('user_name')
     rule_id = params.fetch('text').strip
+    channel = params.fetch('channel_name')
 
     unless rule_id.to_i.between?(1,95)
       logger.error "#{rule_id} is not a valid rule number"
       return "There is no such rule as rule ##{rule_id}"
     end
-    
-    rule_as_json(rule_id, user)
+
+    post_rule(rule_id, user, channel)
   end
 
   post '/the-rules-webhook' do
@@ -42,27 +47,27 @@ class CiberSykkel < Sinatra::Application
 
     if text =~ /(^|\s)#\d\d?($|\s)/
       rule_id = text.match(/#\d\d?/)[0].delete('#')
-      return rule_as_json(rule_id, user)#post_rule(rule_id, user)
+      return rule_as_json(rule_id, user)
     end
 
     200
   end
 
   private
-  def post_rule(rule_id, user)
+  def post_rule(rule_id, user, channel)
     logger.info "Posting rule ##{rule_id}"
 
     https = Net::HTTP.new(VELO_RULES_WEBHOOK.host, VELO_RULES_WEBHOOK.port)
     https.use_ssl = true
     request = Net::HTTP::Post.new(VELO_RULES_WEBHOOK.path)
-    request.body = rule_as_json(rule_id, user)
+    request.body = rule_as_json(rule_id, user, channel)
     logger.debug https.request(request)
   end
 
-  def rule_as_json(rule_id, user)
+  def rule_as_json(rule_id, user, channel=nil)
     logger.info "Creating JSON for rule ##{rule_id}"
     rule = get_rule(rule_id)
-    return {
+    message = {
       "attachments": [
                       {
                         "fallback": rule["rule"],
@@ -71,7 +76,9 @@ class CiberSykkel < Sinatra::Application
                         "title_link": "http://www.velominati.com/the-rules/##{rule_id}",
                         "text": "\n#{rule["description"]}\n\nRequested by #{user}"
                       }
-                     ]}.to_json
+                     ]}
+    message['channel'] ||= channel
+    message.to_json
   end
 
   def get_rule(id)
