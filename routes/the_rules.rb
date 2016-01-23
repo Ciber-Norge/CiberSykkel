@@ -18,9 +18,9 @@ class CiberSykkel < Sinatra::Application
   THE_RULES = JSON.parse(File.read('./assets/the-rules.json'))
 
   before do
-    unless params[:token] == VELO_RULES_TOKEN
+    unless [VELO_RULES_TOKEN, VELO_RULES_OUTGOING_TOKEN].includes?(params[:token])
       logger.error "Wrong token used, #{params[:token]}"
-      return 'You need to specify correct token'
+      halt 401, {'Content-Type' => 'text/plain'}, 'You need to specify correct token'
     end
   end
 
@@ -42,10 +42,10 @@ class CiberSykkel < Sinatra::Application
 
     if text =~ /(^|\s)#\d\d?($|\s)/
       rule_id = text.match(/#\d\d?/)[0].delete('#')
-      post_rule(rule_id, user)
+      return rule_as_json(rule_id, user)#post_rule(rule_id, user)
     end
 
-    { "text": ""}.to_json
+    200
   end
 
   private
@@ -56,7 +56,7 @@ class CiberSykkel < Sinatra::Application
     https.use_ssl = true
     request = Net::HTTP::Post.new(VELO_RULES_WEBHOOK.path)
     request.body = rule_as_json(rule_id, user)
-    logger.info https.request(request)
+    logger.debug https.request(request)
   end
 
   def rule_as_json(rule_id, user)
