@@ -11,10 +11,6 @@ class CiberSykkel < Sinatra::Application
     raise "You must specify the VELO_RULES_TOKEN env variable"
   end
 
-  unless VELO_RULES_OUTGOING_TOKEN = ENV['VELO_RULES_OUTGOING_TOKEN']
-    raise "You must specify the VELO_RULES_OUTGOING_TOKEN env variable"
-  end
-
   unless VELO_RULES_WEBHOOK = URI.parse(ENV['VELO_RULES_WEBHOOK'])
     raise "You must specify the VELO_RULES_WEBHOOK env variable"
   end
@@ -22,7 +18,7 @@ class CiberSykkel < Sinatra::Application
   THE_RULES = JSON.parse(File.read('./assets/the-rules.json'))
 
   before 'the-rules*' do
-    unless [VELO_RULES_TOKEN, VELO_RULES_OUTGOING_TOKEN].include?(params[:token])
+    unless [VELO_RULES_TOKEN].include?(params[:token])
       logger.error "Wrong token used, #{params[:token]}"
       halt 401, {'Content-Type' => 'text/plain'}, 'You need to specify correct token'
     end
@@ -38,7 +34,7 @@ class CiberSykkel < Sinatra::Application
       return "There is no such rule as rule ##{rule_id}"
     end
 
-    post_rule(rule_id, user, channel)
+    rule_as_json(rule_id, user, 'in_channel')
   end
 
   post '/the-rules-webhook' do
@@ -54,17 +50,7 @@ class CiberSykkel < Sinatra::Application
   end
 
   private
-  def post_rule(rule_id, user, channel)
-    logger.info "Posting rule ##{rule_id}"
-
-    https = Net::HTTP.new(VELO_RULES_WEBHOOK.host, VELO_RULES_WEBHOOK.port)
-    https.use_ssl = true
-    request = Net::HTTP::Post.new(VELO_RULES_WEBHOOK.path)
-    request.body = rule_as_json(rule_id, user, channel)
-    logger.debug https.request(request)
-  end
-
-  def rule_as_json(rule_id, user, channel=nil)
+  def rule_as_json(rule_id, user, response_type='ephemeral')
     logger.info "Creating JSON for rule ##{rule_id}"
     rule = get_rule(rule_id)
     message = {
@@ -77,7 +63,7 @@ class CiberSykkel < Sinatra::Application
                         "text": "\n#{rule["description"]}\n\nRequested by #{user}"
                       }
                      ]}
-    #message['channel'] ||= channel
+    message['response_type'] ||= response_type
     message.to_json
   end
 
