@@ -18,7 +18,7 @@ class CiberSykkel < Sinatra::Application
   THE_RULES = JSON.parse(File.read('./assets/the-rules.json'))
 
   before do
-    unless [VELO_RULES_TOKEN, VELO_RULES_OUTGOING_TOKEN].includes?(params[:token])
+    unless [VELO_RULES_TOKEN, VELO_RULES_OUTGOING_TOKEN].include?(params[:token])
       logger.error "Wrong token used, #{params[:token]}"
       halt 401, {'Content-Type' => 'text/plain'}, 'You need to specify correct token'
     end
