@@ -77,7 +77,7 @@ class CiberSykkel < Sinatra::Application
                         "text": "\n#{rule["description"]}\n\nRequested by #{user}"
                       }
                      ]}
-    message['channel'] ||= channel
+    #message['channel'] ||= channel
     message.to_json
   end
 
